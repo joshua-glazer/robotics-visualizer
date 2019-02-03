@@ -78,40 +78,41 @@
 		object.rotation.setFromRotationMatrix(object.matrix);
 	}
 	
-	var i = 0; var k = 0;
-	function update() {
+	var i = 0; var j = 0; var k = 0;
+	var desiredX = 30; var desiredY = 0; var desiredZ = 45;
+	var xDone = false; var yDone = false; var zDone = false;
 	
-		if (i<30) {
+	function update() {
+		if (i < desiredX) {
 			i += 0.25
 			rotateAroundWorldAxis(toolFrame, new THREE.Vector3(1,0,0), THREE.Math.degToRad(0.25));
 		}
 		else {
-			if (k<45) {
+			xDone = true;
+		}		
+		if (xDone) {
+			if (j < desiredY) {
 				k += 0.25
 				rotateAroundWorldAxis(toolFrame, new THREE.Vector3(0,0,1), THREE.Math.degToRad(0.25));
 			}
+			else {
+				yDone = true;
+			}
+			if (yDone){
+				if (k < desiredZ) {
+					k += 0.25
+					rotateAroundWorldAxis(toolFrame, new THREE.Vector3(0,0,1), THREE.Math.degToRad(0.25));
+				}
+				else {
+					zDone = true;
+				}
+			}
 		}
-	
 		renderer.render(scene, camera);
 		requestAnimationFrame(update);
 	}
 	
 	requestAnimationFrame(update);
-	
-	/*
-	var i = 0; var k = 0;
-	
-	while (i<30) {
-		i += 0.25
-		rotateAroundWorldAxis(toolFrame, new THREE.Vector3(1,0,0), THREE.Math.degToRad(0.25));
-		requestAnimationFrame(update);
-	}
-	while (k<45) {
-		k += 0.25
-		rotateAroundWorldAxis(toolFrame, new THREE.Vector3(0,0,1), THREE.Math.degToRad(0.25));
-		requestAnimationFrame(update);
-	}
-	*/
 	
 	window.addEventListener( 'resize', 
 		function () {
