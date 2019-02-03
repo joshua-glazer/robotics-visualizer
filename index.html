@@ -65,7 +65,8 @@
 	scene.add(baseFrame);
 	scene.add(toolFrame);
 	
-	/* from https://stackoverflow.com/questions/11119753/how-to-rotate-a-object-on-axis-world-three-js */
+	/*
+	// from https://stackoverflow.com/questions/11119753/how-to-rotate-a-object-on-axis-world-three-js
 	var rotWorldMatrix;
 	// Rotate an object around an arbitrary axis in world space       
 	function rotateAroundWorldAxis(object, axis, radians) {
@@ -77,37 +78,109 @@
 		//object.rotation.getRotationFromMatrix(object.matrix, object.scale);
 		object.rotation.setFromRotationMatrix(object.matrix);
 	}
+	*/
 	
+	var angleIncrement = 0.25
+	var xAxis = new THREE.Vector3(1,0,0);
+	var yAxis = new THREE.Vector3(0,1,0);
+	var zAxis = new THREE.Vector3(0,0,1);
 	var i = 0; var j = 0; var k = 0;
 	var desiredX = 30; var desiredY = 0; var desiredZ = 45;
 	var xDone = false; var yDone = false; var zDone = false;
 	
+	// for fixed axis rotations
+	//var fixedAxis = true; var eulerAngles = false;
+	// for euler angle rotations
+	var fixedAxis = false; var eulerAngles = true;
+	
+	// this means that rotating x then y then z works like fixed angles
+	// and rotating z then y then x works like euler angles
+	toolFrame.rotation.order = 'ZXY';
+	
 	function update() {
-		if (i < desiredX) {
-			i += 0.25
-			rotateAroundWorldAxis(toolFrame, new THREE.Vector3(1,0,0), THREE.Math.degToRad(0.25));
-		}
-		else {
-			xDone = true;
-		}		
-		if (xDone) {
-			if (j < desiredY) {
-				k += 0.25
-				rotateAroundWorldAxis(toolFrame, new THREE.Vector3(0,0,1), THREE.Math.degToRad(0.25));
+		if (fixedAxis){
+			/*
+			// this code lets me perform rotations around the world axes regardles of rotation order
+			if (i < desiredX) {
+				i += angleIncrement
+				rotateAroundWorldAxis(toolFrame, xAxis, THREE.Math.degToRad(angleIncrement));
 			}
 			else {
-				yDone = true;
-			}
-			if (yDone){
-				if (k < desiredZ) {
-					k += 0.25
-					rotateAroundWorldAxis(toolFrame, new THREE.Vector3(0,0,1), THREE.Math.degToRad(0.25));
+				xDone = true;
+			}	
+			if (xDone) {
+				if (j < desiredY) {
+					k += angleIncrement
+					rotateAroundWorldAxis(toolFrame, yAxis, THREE.Math.degToRad(angleIncrement));
 				}
 				else {
-					zDone = true;
+					yDone = true;
+				}
+				if (yDone){
+					if (k < desiredZ) {
+						k += angleIncrement
+						rotateAroundWorldAxis(toolFrame, zAxis, THREE.Math.degToRad(angleIncrement));
+					}
+					else {
+						zDone = true;
+					}
+				}
+			}
+			*/
+			if (i < desiredX) {
+				i += angleIncrement;
+				toolFrame.rotation.x += THREE.Math.degToRad(angleIncrement);
+			}
+			else {
+				xDone = true;
+			}
+			if (xDone) {
+				if (j < desiredY) {
+					j += angleIncrement;
+					toolFrame.rotation.y += THREE.Math.degToRad(angleIncrement);
+				}
+				else {
+					yDone = true;
+				}
+				if (yDone) {
+					if (k < desiredZ) {
+						k += angleIncrement;
+						toolFrame.rotation.z += THREE.Math.degToRad(angleIncrement);
+					}
+					else {
+						zDone = true;
+					}
 				}
 			}
 		}
+		else if (eulerAngles){
+			if (k < desiredZ) {
+				k += angleIncrement;
+				toolFrame.rotation.z += THREE.Math.degToRad(angleIncrement);
+			}
+			else {
+				zDone = true;
+			}
+			if (zDone) {
+				if (j < desiredY) {
+					j += angleIncrement;
+					toolFrame.rotation.y += THREE.Math.degToRad(angleIncrement);
+				}
+				else {
+					yDone = true;
+				}
+				if (yDone) {
+					if (i < desiredX) {
+						i += angleIncrement;
+						toolFrame.rotation.x += THREE.Math.degToRad(angleIncrement);
+					}
+					else {
+						xDone = true;
+					}
+				}
+			}
+		}
+
 		renderer.render(scene, camera);
 		requestAnimationFrame(update);
 	}
