@@ -1,0 +1,129 @@
+<!doctype html>
+<head>
+  <meta charset="utf-8">
+  <meta name="author" content="Joshua Glazer" />
+  <meta name="viewport" content="width=device-width">
+  <title>Reference Frame Visualizations</title>
+  <style>
+    body {
+      margin: 0;
+    }
+	canvas {
+		width: 100%;
+		height: 100%
+	}
+  </style>
+<head>
+
+<body>  
+<div id="container"></div>
+<script src="three.min.js"></script>
+<script>
+	const NEAR = 1;
+    const FAR = 1000;
+	
+	const container = document.querySelector('#container');
+		
+	var scene,
+		camera,
+		renderer,
+		controls;
+	
+	scene = new THREE.Scene();
+	
+	camera = 
+		new THREE.PerspectiveCamera(
+			10,
+			window.innerWidth / window.innerHeight,
+			NEAR,
+			FAR
+		);
+	
+	camera.up.set(0, 0, 1);
+	camera.position.set(10, 10, 10);
+	camera.lookAt(scene.position);
+	
+	scene.add(camera);
+	
+	renderer = new THREE.WebGLRenderer();
+	renderer.setSize(window.innerWidth, window.innerHeight);
+	
+	container.appendChild(renderer.domElement);	
+	
+	const pointLight =
+      new THREE.PointLight(0xFFFFFF);
+
+    pointLight.position.x = 10;
+    pointLight.position.y = 50;
+    pointLight.position.z = 130;
+
+    scene.add(pointLight);
+
+	var baseFrame = new THREE.AxisHelper(1);
+	var toolFrame = new THREE.AxisHelper(1);
+	
+	scene.add(baseFrame);
+	scene.add(toolFrame);
+	
+	/* from https://stackoverflow.com/questions/11119753/how-to-rotate-a-object-on-axis-world-three-js */
+	var rotWorldMatrix;
+	// Rotate an object around an arbitrary axis in world space       
+	function rotateAroundWorldAxis(object, axis, radians) {
+		rotWorldMatrix = new THREE.Matrix4();
+		rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
+		//rotWorldMatrix.multiplySelf(object.matrix);        // pre-multiply
+		rotWorldMatrix.multiply(object.matrix);        // pre-multiply
+		object.matrix = rotWorldMatrix;
+		//object.rotation.getRotationFromMatrix(object.matrix, object.scale);
+		object.rotation.setFromRotationMatrix(object.matrix);
+	}
+	
+	var i = 0; var k = 0;
+	function update() {
+	
+		if (i<30) {
+			i += 0.25
+			rotateAroundWorldAxis(toolFrame, new THREE.Vector3(1,0,0), THREE.Math.degToRad(0.25));
+		}
+		else {
+			if (k<45) {
+				k += 0.25
+				rotateAroundWorldAxis(toolFrame, new THREE.Vector3(0,0,1), THREE.Math.degToRad(0.25));
+			}
+		}
+	
+		renderer.render(scene, camera);
+		requestAnimationFrame(update);
+	}
+	
+	requestAnimationFrame(update);
+	
+	/*
+	var i = 0; var k = 0;
+	
+	while (i<30) {
+		i += 0.25
+		rotateAroundWorldAxis(toolFrame, new THREE.Vector3(1,0,0), THREE.Math.degToRad(0.25));
+		requestAnimationFrame(update);
+	}
+	while (k<45) {
+		k += 0.25
+		rotateAroundWorldAxis(toolFrame, new THREE.Vector3(0,0,1), THREE.Math.degToRad(0.25));
+		requestAnimationFrame(update);
+	}
+	*/
+	
+	window.addEventListener( 'resize', 
+		function () {
+			camera.aspect = window.innerWidth / window.innerHeight;
+			camera.updateProjectionMatrix();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			//controls.handleResize();
+		},
+		false
+	);
+	
+</script>
+</body>
+
+</html>
