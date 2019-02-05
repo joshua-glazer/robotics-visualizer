@@ -21,27 +21,18 @@
 <script>
 	
 	/* setup */
-	var near = 1;
-	var far = 1000;
-	var angleIncrement = 0.25
+	const near = 1; const far = 1000; // camera visualization distances
 	
-	var origin = new THREE.Vector3(0,0,0);
-	var xAxis = new THREE.Vector3(1,0,0);
-	var yAxis = new THREE.Vector3(0,1,0);
-	var zAxis = new THREE.Vector3(0,0,1);
+	const xColour = 0xff0000; const yColour = 0x00ff00; const zColour = 0x0000ff;
+	const origin = new THREE.Vector3(0,0,0);
+	const xAxis = new THREE.Vector3(1,0,0);
+	const yAxis = new THREE.Vector3(0,1,0);
+	const zAxis = new THREE.Vector3(0,0,1);
 	
-	var xColour = 0xff0000; 
-	var yColour = 0x00ff00;
-	var zColour = 0x0000ff;
-	
-	var desiredRoll = 30;
-	var desiredPitch = 90;//0;
-	var desiredYaw = 45;
-	
-	// for fixed axis rotations
-	var isFixedAxis = true; var isEulerAngles = false;
-	// for euler angle rotations
-	//var isFixedAxis = false; var isEulerAngles = true;
+	var angleIncrement; // each frame this many degrees are incremented
+	var desiredRoll, desiredPitch, desiredYaw; // r p y => x y z rotations
+	var isFixedAxis = false; // for fixed axis rotations
+	var isEulerAngles = false; // for euler angle rotations
 	
 	/* renderer */
 	var renderer = new THREE.WebGLRenderer();
@@ -80,23 +71,26 @@
 	);
 	
 	/* frames */
-	var baseFrame = new THREE.AxisHelper(0.5);
-	var toolFrame = new THREE.AxisHelper(1);
+	//var baseFrame = new THREE.AxisHelper(0.5);
+	//var toolFrame = new THREE.AxisHelper(1);
 	
+	var baseFrame = new THREE.Object3D();
 	var baseX = new THREE.ArrowHelper(xAxis, origin, 0.5, xColour);
 	var baseY = new THREE.ArrowHelper(yAxis, origin, 0.5, yColour);
 	var baseZ = new THREE.ArrowHelper(zAxis, origin, 0.5, zColour);
+	baseFrame.add(baseX); baseFrame.add(baseY); baseFrame.add(baseZ);
+	
+	var toolFrame = new THREE.Object3D();
 	var toolX = new THREE.ArrowHelper(xAxis, origin, 1, xColour);
 	var toolY = new THREE.ArrowHelper(yAxis, origin, 1, yColour);
 	var toolZ = new THREE.ArrowHelper(zAxis, origin, 1, zColour);
+	toolFrame.add(toolX); toolFrame.add(toolY); toolFrame.add(toolZ);
 	
-	//scene.add(baseFrame);
+	scene.add(baseFrame);
 	scene.add(toolFrame);
-	scene.add(baseX); scene.add(baseY);	scene.add(baseZ);
-	//scene.add(toolX); scene.add(toolY); scene.add(toolZ);
 	
 	/* functions */
-	/*
+	
 	// from https://stackoverflow.com/questions/11119753/how-to-rotate-a-object-on-axis-world-three-js
 	var rotWorldMatrix;
 	// Rotate an object around an arbitrary axis in world space       
@@ -109,25 +103,16 @@
 		//object.rotation.getRotationFromMatrix(object.matrix, object.scale);
 		object.rotation.setFromRotationMatrix(object.matrix);
 	}
-	*/
-	
+
 	var i = 0; var j = 0; var k = 0;
 	var rotationComplete = false;
 	var xDone = false; var yDone = false; var zDone = false;
-	
-	// this means that rotating x then y then z works like fixed angles
-	// and rotating z then y then x works like euler angles
-	toolFrame.rotation.order = 'ZYX';
-	toolX.rotation.order = 'ZYX'; toolY.rotation.order = 'ZYX'; toolZ.rotation.order = 'ZYX';
 	
 	// rotates about the base frame's axes
 	function rotateFixedAxis(roll, pitch, yaw){
 		if (i < roll) {
 			i += angleIncrement;
-			toolFrame.rotation.x += THREE.Math.degToRad(angleIncrement);
-			//toolX.rotation.x += THREE.Math.degToRad(angleIncrement);
-			//toolY.rotation.x += THREE.Math.degToRad(angleIncrement);
-			//toolZ.rotation.x += THREE.Math.degToRad(angleIncrement);
+			rotateAroundWorldAxis(toolFrame, xAxis, THREE.Math.degToRad(angleIncrement));
 		}
 		else {
 			xDone = true;
@@ -135,10 +120,7 @@
 		if (xDone) {
 			if (j < pitch) {
 				j += angleIncrement;
-				toolFrame.rotation.y += THREE.Math.degToRad(angleIncrement);
-				//toolX.rotation.y += THREE.Math.degToRad(angleIncrement);
-				//toolY.rotation.y += THREE.Math.degToRad(angleIncrement);
-				//toolZ.rotation.y += THREE.Math.degToRad(angleIncrement);
+				rotateAroundWorldAxis(toolFrame, yAxis, THREE.Math.degToRad(angleIncrement));
 			}
 			else {
 				yDone = true;
@@ -146,37 +128,6 @@
 			if (yDone) {
 				if (k < yaw) {
 					k += angleIncrement;
-					toolFrame.rotation.z += THREE.Math.degToRad(angleIncrement);
-					//toolX.rotation.z += THREE.Math.degToRad(angleIncrement);
-					//toolY.rotation.z += THREE.Math.degToRad(angleIncrement);
-					//toolZ.rotation.z += THREE.Math.degToRad(angleIncrement);
-				}
-				else {
-					zDone = true;
-					rotationComplete = true;
-				}
-			}
-		}
-		/*
-		// this code lets me perform rotations around the world axes regardles of rotation order
-		if (i < roll) {
-			i += angleIncrement
-			rotateAroundWorldAxis(toolFrame, xAxis, THREE.Math.degToRad(angleIncrement));
-		}
-		else {
-			xDone = true;
-		}	
-		if (xDone) {
-			if (j < pitch) {
-				k += angleIncrement
-				rotateAroundWorldAxis(toolFrame, yAxis, THREE.Math.degToRad(angleIncrement));
-			}
-			else {
-				yDone = true;
-			}
-			if (yDone){
-				if (k < yaw) {
-					k += angleIncrement
 					rotateAroundWorldAxis(toolFrame, zAxis, THREE.Math.degToRad(angleIncrement));
 				}
 				else {
@@ -185,17 +136,13 @@
 				}
 			}
 		}
-		*/
 	}
 	
-	// rotates about the tool frame's own axes
+	// rotates about the tool frame's axes
 	function rotateEulerAngles(roll, pitch, yaw){
 		if (k < yaw) {
 			k += angleIncrement;
-			toolFrame.rotation.z += THREE.Math.degToRad(angleIncrement);
-			//toolX.rotation.x += THREE.Math.degToRad(angleIncrement);
-			//toolY.rotation.x += THREE.Math.degToRad(angleIncrement);
-			//toolZ.rotation.x += THREE.Math.degToRad(angleIncrement);
+			toolFrame.rotateZ(THREE.Math.degToRad(angleIncrement));
 		}
 		else {
 			zDone = true;
@@ -203,10 +150,7 @@
 		if (zDone) {
 			if (j < pitch) {
 				j += angleIncrement;
-				toolFrame.rotation.y += THREE.Math.degToRad(angleIncrement);
-				//toolX.rotation.y += THREE.Math.degToRad(angleIncrement);
-				//toolY.rotation.y += THREE.Math.degToRad(angleIncrement);
-				//toolZ.rotation.y += THREE.Math.degToRad(angleIncrement);
+				toolFrame.rotateY(THREE.Math.degToRad(angleIncrement));
 			}
 			else {
 				yDone = true;
@@ -214,10 +158,7 @@
 			if (yDone) {
 				if (i < roll) {
 					i += angleIncrement;
-					toolFrame.rotation.x += THREE.Math.degToRad(angleIncrement);
-					//toolX.rotation.z += THREE.Math.degToRad(angleIncrement);
-					//toolY.rotation.z += THREE.Math.degToRad(angleIncrement);
-					//toolZ.rotation.z += THREE.Math.degToRad(angleIncrement);
+					toolFrame.rotateX(THREE.Math.degToRad(angleIncrement));
 				}
 				else {
 					xDone = true;
@@ -241,9 +182,24 @@
 		requestAnimationFrame(update);
 	}
 	
-	// this causes the scene to be rendered and then update() recursively calls itself
-	requestAnimationFrame(update);
+	angleIncrement = 0.25; // this will cause issues eventually because it can't achieve every angle
 	
+	// this means that rotating x then y then z works like fixed angles
+	// and rotating z then y then x works like euler angles
+	//toolFrame.rotation.order = 'ZYX'; // must use this for fixed angles using euler rotations
+	
+	//isFixedAxis = true;
+	isEulerAngles = true;
+	
+	desiredRoll = 30;
+	//desiredPitch = 15;
+	desiredYaw = 45;
+	
+	// this causes the scene to be rendered and then update() recursively calls itself
+	requestAnimationFrame(update); // 60 fps
+	
+	// the below function lets one rotate around any axis defined in the object's frame
+	//toolFrame.rotateOnAxis(xAxis, THREE.Math.degToRad(angleIncrement)); 
 </script>
 </body>
 
