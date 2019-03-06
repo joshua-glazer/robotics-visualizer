@@ -1,262 +1,52 @@
+
 <!doctype html>
+
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <meta name="author" content="Joshua Glazer" />
-  <meta name="viewport" content="width=device-width">
+  <meta name="viewport" content="width=device-width" />
+  <link type="text/css" rel="stylesheet" href="styles.css" />
   <title>Reference Frame Visualizations</title>
-  <style>
-    body {
-      margin: 0;
-    }
-	canvas {
-		width: 100%;
-		height: 100%
-	}
-  </style>
 </head>
 
-<body>  
-<div id="container"></div>
-<script src="three.min.js"></script>
-<script>
-	
-	/* setup */
-	const near = 1; const far = 1000; // camera visualization distances
-	const xColour = 0xff0000; const yColour = 0x00ff00; const zColour = 0x0000ff;
-	const origin = new THREE.Vector3(0,0,0);
-	const xAxis = new THREE.Vector3(1,0,0);
-	const yAxis = new THREE.Vector3(0,1,0);
-	const zAxis = new THREE.Vector3(0,0,1);
-	
-	var angleIncrement; // each frame this many degrees are incremented
-	var desiredRoll, desiredPitch, desiredYaw; // r p y => x y z rotations
-	var rotationAxis; // axis for axis angle rotations
-	var rotationAngle; // angle for axis angle rotations
-	var isFixedAxis = false; // for fixed axis rotations
-	var isEulerAngles = false; // for euler angle rotations
-	var isAxisAngle = false; // for axis angle rotations
-	
-	/* renderer */
-	var renderer = new THREE.WebGLRenderer();
-	renderer.setSize(window.innerWidth, window.innerHeight);
-	
-	const container = document.querySelector('#container');
-	container.appendChild(renderer.domElement);	
-	
-	/* scene */
-	var scene = new THREE.Scene();
-	
-	/* camera */
-	var camera = 
-		new THREE.PerspectiveCamera(
-			10,
-			window.innerWidth / window.innerHeight,
-			near,
-			far
-		);
-	
-	camera.up = zAxis;
-	camera.position.set(10, 10, 10);
-	camera.lookAt(scene.position);
-	
-	scene.add(camera);
-	
-	// resizes window automatically
-	window.addEventListener( 'resize', 
-		function () {
-			camera.aspect = window.innerWidth / window.innerHeight;
-			camera.updateProjectionMatrix();
-			renderer.setSize( window.innerWidth, window.innerHeight );
-			//controls.handleResize();
-		},
-		false
-	);
-	
-	/* frames */
-	// I've sometimes noticed performance issues when rotating ArrowHelpers
-	
-	//var baseFrame = new THREE.AxisHelper(0.5);
-	//var toolFrame = new THREE.AxisHelper(1);
-	
-	var baseFrame = new THREE.Object3D();
-	var baseX = new THREE.ArrowHelper(xAxis, origin, 0.5, xColour);
-	var baseY = new THREE.ArrowHelper(yAxis, origin, 0.5, yColour);
-	var baseZ = new THREE.ArrowHelper(zAxis, origin, 0.5, zColour);
-	baseFrame.add(baseX); baseFrame.add(baseY); baseFrame.add(baseZ);
-	
-	var toolFrame = new THREE.Object3D();
-	var toolX = new THREE.ArrowHelper(xAxis, origin, 1, xColour);
-	var toolY = new THREE.ArrowHelper(yAxis, origin, 1, yColour);
-	var toolZ = new THREE.ArrowHelper(zAxis, origin, 1, zColour);
-	toolFrame.add(toolX); toolFrame.add(toolY); toolFrame.add(toolZ);
-	
-	
-	scene.add(baseFrame);
-	scene.add(toolFrame);
-	
-	/* functions */
-	
-	// from https://stackoverflow.com/questions/11119753/how-to-rotate-a-object-on-axis-world-three-js
-	var rotWorldMatrix;
-	// Rotate an object around an arbitrary axis in world space       
-	function rotateAroundWorldAxis(object, axis, radians) {
-		rotWorldMatrix = new THREE.Matrix4();
-		rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
-		//rotWorldMatrix.multiplySelf(object.matrix);        // pre-multiply
-		rotWorldMatrix.multiply(object.matrix);        // pre-multiply
-		object.matrix = rotWorldMatrix;
-		//object.rotation.getRotationFromMatrix(object.matrix, object.scale);
-		object.rotation.setFromRotationMatrix(object.matrix);
-	}
-
-	var i = 0; var j = 0; var k = 0; // primary rotations
-	var xDone = false; var yDone = false; var zDone = false; // primary rotations
-	var w = 0; // axis angle rotations
-	var rotationComplete = false;
-	
-	// rotates about the base frame's axes
-	function rotateFixedAxis(roll, pitch, yaw){
-		var xDir = 1; var yDir = 1; var zDir = 1;
-		if (roll < 0) { xDir = -1; roll = -roll; }
-		if (pitch < 0) { yDir = -1; pitch = -pitch; }
-		if (yaw < 0) { zDir = -1; yaw = -yaw; }
-
-		if (i < roll) {
-			i += angleIncrement;
-			rotateAroundWorldAxis(toolFrame, xAxis, xDir*THREE.Math.degToRad(angleIncrement));
-		}
-		else {
-			xDone = true;
-		}
-		if (xDone) {
-			if (j < pitch) {
-				j += angleIncrement;
-				rotateAroundWorldAxis(toolFrame, yAxis, yDir*THREE.Math.degToRad(angleIncrement));
-			}
-			else {
-				yDone = true;
-			}
-			if (yDone) {
-				if (k < yaw) {
-					k += angleIncrement;
-					rotateAroundWorldAxis(toolFrame, zAxis, zDir*THREE.Math.degToRad(angleIncrement));
-				}
-				else {
-					zDone = true;
-					rotationComplete = true;
-				}
-			}
-		}
-	}
-	
-	// rotates about the tool frame's axes
-	function rotateEulerAngles(roll, pitch, yaw){
-		var xDir = 1; var yDir = 1; var zDir = 1;
-		if (roll < 0) { xDir = -1; roll = -roll; }
-		if (pitch < 0) { yDir = -1; pitch = -pitch; }
-		if (yaw < 0) { zDir = -1; yaw = -yaw; }
-		
-		if (k < yaw) {
-			k += angleIncrement;
-			toolFrame.rotateZ(zDir*THREE.Math.degToRad(angleIncrement));
-		}
-		else {
-			zDone = true;
-		}
-		if (zDone) {
-			if (j < pitch) {
-				j += angleIncrement;
-				toolFrame.rotateY(yDir*THREE.Math.degToRad(angleIncrement));
-			}
-			else {
-				yDone = true;
-			}
-			if (yDone) {
-				if (i < roll) {
-					i += angleIncrement;
-					toolFrame.rotateX(xDir*THREE.Math.degToRad(angleIncrement));
-				}
-				else {
-					xDone = true;
-					rotationComplete = true;
-				}
-			}
-		}
-	}
-	
-	// rotates about the tool frame's axes
-	function rotateAxisAngles(axis, angle){
-		var dir = 1;
-		if (angle < 0) { dir = -1; angle = -angle; }
-		
-		if (w < angle) {
-			w += angleIncrement;
-			if (isEulerAngles){
-				toolFrame.rotateOnAxis(axis, dir*THREE.Math.degToRad(angleIncrement));
-			}
-			else if (isFixedAxis) {
-				rotateAroundWorldAxis(toolFrame, axis, dir*THREE.Math.degToRad(angleIncrement));
-			}
-		}
-		else {
-			rotationComplete = true;
-		}
-	}
-	
-	/* this function and the following call cause an endless loop of rendering */
-	function update() {
-		if (!rotationComplete){
-			if (isAxisAngle){
-				rotateAxisAngles(rotationAxis, rotationAngle);
-			}
-			else if (isFixedAxis){
-				rotateFixedAxis(desiredRoll, desiredPitch, desiredYaw);
-			}
-			else if (isEulerAngles){
-				rotateEulerAngles(desiredRoll, desiredPitch, desiredYaw);
-			}
-		}
-		/*
-		else { // just to make sure it really is rotating about the desired frame
-			rotationComplete = false;
-			isAxisAngle = true;
-		}
-		*/
-		renderer.render(scene, camera);
-		requestAnimationFrame(update);
-	}
-	
-	angleIncrement = 1;//0.25; // this will cause issues eventually because it can't achieve every angle
-	
-	// this means that rotating x then y then z works like fixed angles
-	// and rotating z then y then x works like euler angles
-	//toolFrame.rotation.order = 'ZYX'; // must use this for fixed angles using euler rotations
-	
-	isFixedAxis = true;
-	//isEulerAngles = true;
-	//isAxisAngle = true;
-	
-	desiredRoll = -90;
-	//desiredPitch = 15;
-	desiredYaw = 180;
-	
-	rotationAngle = 30;
-	rotationAxis = new THREE.Vector3(1,1,0);
-	
-	/*
-	// apply initial transforms
-	toolFrame.rotateX(THREE.Math.degToRad(r));
-	//toolFrame.rotateY(THREE.Math.degToRad(p));
-	toolFrame.rotateZ(THREE.Math.degToRad(y));
-	baseFrame.rotateX(THREE.Math.degToRad(r));
-	//baseFrame.rotateY(THREE.Math.degToRad(p));
-	baseFrame.rotateZ(THREE.Math.degToRad(y));
-	*/
-	
-	// this causes the scene to be rendered and then update() recursively calls itself
-	requestAnimationFrame(update); // 60 fps
-	
-</script>
+<body>
+  <div id="container">
+    <div id="encs">
+  		<h2>How to make an ENCS website like this one:</h3>
+  		<p>
+  			Software used: <a href="https://mobaxterm.mobatek.net/download-home-edition.html">Mobaxterm</a>
+  			<br />
+  			Why: You can directly manipulate the files and folders with a GUI rather than just a shell.
+  			<br /><br />
+  			Steps:
+  			<ol>
+  				<li>Open a session in Mobaxterm and choose SSH</li>
+  				<li>Sign in using login.encs.concordia.ca (default port 22 works)</li>
+  				<li>It will ask you for your username, then your password. use your ENCS username and password</li>
+  				<li>On the left in the file explorer thing switch from /nfs/home/username/ to /www/home/username/</li>
+  				<li>Now you can replace whatever was in that directory with your own HTML files etc. to make a website!</li>
+				<li>Last tip is to make sure the permissions on any file you add allow Other people to Read it</li>
+  			</ol>
+  		</p>
+  	</div>
+  	<div id="controls">
+  		X angle:
+  		<div class="slidecontainer">
+  			<input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+  		</div>
+  		Y angle:
+  		<div class="slidecontainer">
+  			<input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+  		</div>
+  		Z angle:
+  		<div class="slidecontainer">
+  			<input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+  		</div>
+  	</div>
+  </div>
+  
+  <script src="three.min.js"></script>
+  <script src="graphics.js"></script>
 </body>
 
 </html>
