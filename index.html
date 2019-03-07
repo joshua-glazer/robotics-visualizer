@@ -30,18 +30,23 @@
   		</p>
   	</div>
   	<div id="controls">
-  		X angle:
+  		<div>X angle: <div id="xAngles"></div></div>
   		<div class="slidecontainer">
-  			<input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+  			<input type="range" min="-180" max="180" value="45" step="0.25" class="slider" id="xRange">
   		</div>
-  		Y angle:
+  		<div>Y angle: <div id="yAngles"></div></div>
   		<div class="slidecontainer">
-  			<input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+  			<input type="range" min="-180" max="180" value="0" step="0.25" class="slider" id="yRange">
   		</div>
-  		Z angle:
+  		<div>Z angle: <div id="zAngles"></div></div>
   		<div class="slidecontainer">
-  			<input type="range" min="1" max="100" value="50" class="slider" id="myRange">
+  			<input type="range" min="-180" max="180" value="90" step="0.25" class="slider" id="zRange">
   		</div>
+     <input type="radio" name="rotationType" id="r1" value="fixed" checked="checked"> Fixed axes
+     <input type="radio" name="rotationType" id="r2" value="euler"> Euler axes
+     <input type="radio" name="rotationType" id="r3" value="axis"> Axis angle
+     <br />
+     <button type="button" id="anglesButton">Apply transformations</button> 
   	</div>
   </div>
   
