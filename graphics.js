@@ -107,8 +107,7 @@ function rotateFixedAxis(roll, pitch, yaw){
 	if (roll < 0) { xDir = -1; roll = -roll; }
 	if (pitch < 0) { yDir = -1; pitch = -pitch; }
 	if (yaw < 0) { zDir = -1; yaw = -yaw; }
-  //console.log(i);console.log(j);console.log(k);
-	if (i < roll) {
+  if (i < roll) {
 		i += angleIncrement;
 		rotateAroundWorldAxis(toolFrame, xAxis, xDir*THREE.Math.degToRad(angleIncrement));
 	}
@@ -178,63 +177,45 @@ function rotateAxisAngles(axis, angle){
 	
 	if (w < angle) {
 		w += angleIncrement;
-		if (rotationType == eulerAxis){
-			toolFrame.rotateOnAxis(axis, dir*THREE.Math.degToRad(angleIncrement));
-		}
-		else if (rotationType == fixedAxis) {
-			rotateAroundWorldAxis(toolFrame, axis, dir*THREE.Math.degToRad(angleIncrement));
-		}
+		toolFrame.rotateOnAxis(axis, dir*THREE.Math.degToRad(angleIncrement));
 	}
 	else {
 		rotationComplete = true;
 	}
 }
-
+    
 /* this function and the following call cause an endless loop of rendering */
 function update() {
   if (newMovement){
-    //toolFrame.rotation.set(0,0,0);
-    i=0;j=0;k=0;
+    toolFrame.rotation.set(0,0,0);
+    newMovement = false; rotationComplete = false;
+    i=0; j=0; k=0; w=0;
+    xDone=false; yDone=false; zDone=false;
+    desiredRoll = parseFloat(xSlider.value); desiredPitch = parseFloat(ySlider.value); desiredYaw = parseFloat(zSlider.value);
     
-    desiredRoll = parseFloat(xSlider.value);
-    desiredPitch = parseFloat(ySlider.value);
-    desiredYaw = parseFloat(zSlider.value);
-    
-    rotationComplete = false;
-    newMovement = false;
     console.log("desired angles:");
-    console.log("x (roll): "+desiredRoll);
-    console.log("y (pitch): "+desiredPitch);
-    console.log("z (yaw): "+desiredYaw);
+    console.log("x (roll): "+desiredRoll); console.log("y (pitch): "+desiredPitch); console.log("z (yaw): "+desiredYaw);
   }
-	if (!rotationComplete){
-		if (rotationType == fixedAxis){
-			rotateFixedAxis(desiredRoll, desiredPitch, desiredYaw);
-		}
-		else if (rotationType == eulerAxis){
-			rotateEulerAngles(desiredRoll, desiredPitch, desiredYaw);
-		}
-		else if (rotationType == axisAngle){
-			rotateAxisAngles(rotationAxis, rotationAngle);
-		}
-	}
-	/*
-	else { // just to make sure it really is rotating about the desired frame
-		rotationComplete = false;
-		isAxisAngle = true;
-	}
-	*/
+  if (!rotationComplete){
+    if (rotationType == fixedAxis){
+      rotateFixedAxis(desiredRoll, desiredPitch, desiredYaw);
+    }
+    else if (rotationType == eulerAxis){
+      rotateEulerAngles(desiredRoll, desiredPitch, desiredYaw);
+    }
+    else if (rotationType == axisAngle){
+      rotateAxisAngles(rotationAxis, rotationAngle);
+    }
+  }
 	renderer.render(scene, camera);
 	requestAnimationFrame(update);
 }
-
-angleIncrement = 1;//0.25; // this will cause issues eventually because it can't achieve every angle
 
 // this means that rotating x then y then z works like fixed angles
 // and rotating z then y then x works like euler angles
 //toolFrame.rotation.order = 'ZYX'; // must use this for fixed angles using euler rotations
 
-rotationType = fixedAxis;
+angleIncrement = 1;//0.25; // this will cause issues eventually because it can't achieve every angle
 rotationAngle = 30;
 rotationAxis = new THREE.Vector3(1,1,0);
 
@@ -287,8 +268,8 @@ anglesButton = document.getElementById("anglesButton");
 anglesButton.onclick = function() {
   newMovement = true;
   if (fixedRadio.checked) { rotationType = fixedAxis; console.log(fixedRadio.value); }
-  if (eulerRadio.checked) { rotationType = eulerAxis; console.log(eulerRadio.value); }
-  if (axisRadio.checked) { rotationType = axisAngle; console.log(axisRadio.value); }
+  else if (eulerRadio.checked) { rotationType = eulerAxis; console.log(eulerRadio.value); }
+  else if (axisRadio.checked) { rotationType = axisAngle; console.log(axisRadio.value); }
 }
 // this causes the scene to be rendered and then update() recursively calls itself
 requestAnimationFrame(update); // 60 fps
