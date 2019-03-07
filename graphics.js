@@ -195,6 +195,15 @@ function update() {
     
     console.log("desired angles:");
     console.log("x (roll): "+desiredRoll); console.log("y (pitch): "+desiredPitch); console.log("z (yaw): "+desiredYaw);
+    
+    rotationAxis = new THREE.Vector3(parseFloat(axisAngleX.value), parseFloat(axisAngleY.value), parseFloat(axisAngleZ.value));
+    rotationAxis.normalize();
+    rotationAngle = parseFloat(axisAngleTheta.value);
+    
+    console.log("desired axis and angle:");
+    console.log("["+axisAngleX.value+" "+axisAngleY.value+" "+axisAngleZ.value+"]"+" at "+rotationAngle+" degrees");
+    console.log("normalized to:");
+    console.log("["+rotationAxis.x+" "+rotationAxis.y+" "+rotationAxis.z+"]");
   }
   if (!rotationComplete){
     if (rotationType == fixedAxis){
@@ -216,8 +225,6 @@ function update() {
 //toolFrame.rotation.order = 'ZYX'; // must use this for fixed angles using euler rotations
 
 angleIncrement = 1;//0.25; // this will cause issues eventually because it can't achieve every angle
-rotationAngle = 30;
-rotationAxis = new THREE.Vector3(1,1,0);
 
 /*
 // apply initial transforms
@@ -250,9 +257,14 @@ xSlider.step=angleIncrement;
 ySlider.step=angleIncrement;
 zSlider.step=angleIncrement;
 // Gain access to the radio buttons
-fixedRadio = document.getElementById("r1");
-eulerRadio = document.getElementById("r2");
-axisRadio = document.getElementById("r3");
+var fixedRadio = document.getElementById("r1");
+var eulerRadio = document.getElementById("r2");
+var axisRadio = document.getElementById("r3");
+// Gain axis to the axis angle data
+var axisAngleX = document.getElementById("xVector");
+var axisAngleY = document.getElementById("yVector");
+var axisAngleZ = document.getElementById("zVector");
+var axisAngleTheta = document.getElementById("axisAngle");
 // Update the current slider value (each time you drag the slider handle)
 xSlider.oninput = function() {
 	xOutput.innerHTML = this.value;
@@ -269,7 +281,11 @@ anglesButton.onclick = function() {
   newMovement = true;
   if (fixedRadio.checked) { rotationType = fixedAxis; console.log(fixedRadio.value); }
   else if (eulerRadio.checked) { rotationType = eulerAxis; console.log(eulerRadio.value); }
-  else if (axisRadio.checked) { rotationType = axisAngle; console.log(axisRadio.value); }
+  else if (axisRadio.checked) {
+    rotationType = axisAngle;
+    console.log("axis vector: "+axisAngleX.value+axisAngleY.value+axisAngleZ.value);
+    console.log("axis angle: "+axisAngleTheta.value);
+  }
 }
 // this causes the scene to be rendered and then update() recursively calls itself
 requestAnimationFrame(update); // 60 fps

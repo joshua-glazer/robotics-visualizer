@@ -44,7 +44,12 @@
   		</div>
      <input type="radio" name="rotationType" id="r1" value="fixed" checked="checked"> Fixed axes
      <input type="radio" name="rotationType" id="r2" value="euler"> Euler axes
-     <input type="radio" name="rotationType" id="r3" value="axis"> Axis angle
+     <br />
+     <input type="radio" name="rotationType" id="r3" value="axis"> Axis angle: 
+     x: <input type="number" name="xVector" id="xVector" value="1" size="3">
+     y: <input type="number" name="yVector" id="yVector" value="1" size="3">
+     z: <input type="number" name="zVector" id="zVector" value="0" size="3">
+     angle: <input type="number" name="angle" id="axisAngle" value="45" size="5">
      <br />
      <button type="button" id="anglesButton">Apply transformations</button> 
   	</div>
