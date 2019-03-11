@@ -83,6 +83,7 @@ scene.add(toolFrame);
 
 /* functions */
 
+const worldMatrix = new THREE.Matrix4();
 var xRotMatrix = new THREE.Matrix4();
 var yRotMatrix = new THREE.Matrix4();
 var zRotMatrix = new THREE.Matrix4();
@@ -203,12 +204,14 @@ function rotateAxisAngles(axis, angle){
 /* this function and the following call cause an endless loop of rendering */
 function update() {
   if (newMovement){
-    toolFrame.rotation.set(0,0,0);
+	var startingRotation = new THREE.Matrix4();
+	startingRotation.copy(worldMatrix);
+    toolFrame.rotation.setFromRotationMatrix(startingRotation);
+    //toolFrame.rotation.set(0,0,0);
     newMovement = false; rotationComplete = false;
     i=0; j=0; k=0; w=0;
     xDone=false; yDone=false; zDone=false;
     desiredRoll = parseFloat(xSlider.value); desiredPitch = parseFloat(ySlider.value); desiredYaw = parseFloat(zSlider.value);
-    
     console.log("desired angles:");
     console.log("x (roll): "+desiredRoll); console.log("y (pitch): "+desiredPitch); console.log("z (yaw): "+desiredYaw);
     
