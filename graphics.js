@@ -80,20 +80,14 @@ scene.add(vector);
 scene.add(baseFrame);
 scene.add(toolFrame);
 
+
 /* functions */
 
-// from https://stackoverflow.com/questions/11119753/how-to-rotate-a-object-on-axis-world-three-js
-var rotWorldMatrix;
-// Rotate an object around an arbitrary axis in world space       
-function rotateAroundWorldAxis(object, axis, radians) {
-	rotWorldMatrix = new THREE.Matrix4();
-	rotWorldMatrix.makeRotationAxis(axis.normalize(), radians);
-	//rotWorldMatrix.multiplySelf(object.matrix);        // pre-multiply
-	rotWorldMatrix.multiply(object.matrix);        // pre-multiply
-	object.matrix = rotWorldMatrix;
-	//object.rotation.getRotationFromMatrix(object.matrix, object.scale);
-	object.rotation.setFromRotationMatrix(object.matrix);
-}
+var xRotMatrix = new THREE.Matrix4();
+var yRotMatrix = new THREE.Matrix4();
+var zRotMatrix = new THREE.Matrix4();
+var fixedRotMatrix = new THREE.Matrix4();
+var tempMatrix = new THREE.Matrix4();
 
 var i = 0; var j = 0; var k = 0; // primary rotations
 var xDone = false; var yDone = false; var zDone = false; // primary rotations
@@ -109,26 +103,48 @@ function rotateFixedAxis(roll, pitch, yaw){
 	if (yaw < 0) { zDir = -1; yaw = -yaw; }
   if (i < roll) {
 		i += angleIncrement;
-		rotateAroundWorldAxis(toolFrame, xAxis, xDir*THREE.Math.degToRad(angleIncrement));
+		xRotMatrix.makeRotationX(xDir*THREE.Math.degToRad(i));
+		fixedRotMatrix.copy(xRotMatrix);
+		toolFrame.rotation.setFromRotationMatrix(fixedRotMatrix);
 	}
 	else {
+		xRotMatrix.makeRotationX(xDir*THREE.Math.degToRad(roll));
+		fixedRotMatrix.copy(xRotMatrix);
+		toolFrame.rotation.setFromRotationMatrix(fixedRotMatrix);
 		xDone = true;
 	}
 	if (xDone) {
 		if (j < pitch) {
 			j += angleIncrement;
-			rotateAroundWorldAxis(toolFrame, yAxis, yDir*THREE.Math.degToRad(angleIncrement));
+			yRotMatrix.makeRotationY(yDir*THREE.Math.degToRad(j));
+			fixedRotMatrix.multiplyMatrices(yRotMatrix,xRotMatrix);
+			toolFrame.rotation.setFromRotationMatrix(fixedRotMatrix);
+			//console.log(j);
 		}
 		else {
+			yRotMatrix.makeRotationY(yDir*THREE.Math.degToRad(pitch));
+			fixedRotMatrix.multiplyMatrices(yRotMatrix,xRotMatrix);
+			toolFrame.rotation.setFromRotationMatrix(fixedRotMatrix);
 			yDone = true;
 		}
 		if (yDone) {
 			if (k < yaw) {
 				k += angleIncrement;
-				rotateAroundWorldAxis(toolFrame, zAxis, zDir*THREE.Math.degToRad(angleIncrement));
+				zRotMatrix.makeRotationZ(zDir*THREE.Math.degToRad(k));
+				tempMatrix.multiplyMatrices(yRotMatrix,xRotMatrix);
+				fixedRotMatrix.multiplyMatrices(zRotMatrix,tempMatrix);
+				toolFrame.rotation.setFromRotationMatrix(fixedRotMatrix);
+				//console.log(k);
 			}
 			else {
+				zRotMatrix.makeRotationZ(zDir*THREE.Math.degToRad(yaw));
+				tempMatrix.multiplyMatrices(yRotMatrix,xRotMatrix);
+				fixedRotMatrix.multiplyMatrices(zRotMatrix,tempMatrix);
+				toolFrame.rotation.setFromRotationMatrix(fixedRotMatrix);
 				zDone = true;
+				console.log((xRotMatrix.premultiply(yRotMatrix)).elements);
+				console.log(fixedRotMatrix.elements);
+				//console.log(pitch);
 				rotationComplete = true;
 			}
 		}
